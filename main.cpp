@@ -1,92 +1,169 @@
+#include <iostream>
 #include<stdio.h>
 #include<conio.h>
 #include<graphics.h>
-#include<dos.h>
+#include<dos.h>SSA
 
-void dogs(int i,int j,int k);
-void fox(int i,int j,int k);
+using namespace std;
 
-int main()
-{
- int a=DETECT,b,c;
- int x,y,i,j,k=0,poly[8],l,m=0;
+//global variables
+int board[8][8];
+struct position {
+    int i, j;
+} piecePosition;
 
- initgraph(&a,&b,"\\tc\\bgi");
- x=getmaxx()/8;
- y=getmaxy()/8;
+//functions
+void fox();
+void dogs();
+void generateMatrix();
+void resetGame();
+void printMatrix();
+void movePiece(position moveFrom, position moveTo);
+void drawBoard();
 
- for(i=1,k+=y;m<8;i+=y,m++)
- for(j=1,l=0;l<8;j+=x,l++)
- {
-  if((l%2==1 && m%2==0) || (l%2==0 && m%2==1))
-  {
-   setcolor(12);
-   setfillstyle(1,15);
-   poly[0]=j;
-   poly[1]=i;
-   poly[2]=j+x;
-   poly[3]=i;
-   poly[4]=j+x;
-   poly[5]=k+i;
-   poly[6]=j;
-   poly[7]=k+i;
-   fillpoly(4,poly);
-  }
-  if(m==7 && l==0)
-   {
-       setcolor(15);
-       dogs(i,j,k);
-   }
+int main(){
 
-   if(m==7 && l==2)
-   {
-       setcolor(15);
-       dogs(i,j,k);
-   }
-
-   if(m==7 && l==4)
-   {
-       setcolor(15);
-       dogs(i,j,k);
-   }
-   if(m==7 && l==6)
-   {
-       setcolor(15);
-       dogs(i,j,k);
-   }
-
-   if(m==0 && l==3)
-   {
-       setcolor(0);
-       fox(i,j,k);
-   }
-
-
- }
-
-
-
-  getch();
-  closegraph();
-}
-void dogs(int i,int j,int k)
-{
- ellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),0,360,17,17);
- fillellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),17,17);
- setcolor(120);
- setfillstyle(1,120);
-
- ellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),0,360,10,10);
- fillellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),10,10);
+    drawBoard();
+    printMatrix();
+    return 0;
 }
 
-void fox(int i,int j,int k)
-{
- ellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),0,360,17,17);
- fillellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),17,17);
- setcolor(120);
- setfillstyle(1,120);
+//function definitions
 
- ellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),0,360,10,10);
- fillellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),10,10);
+void generateMatrix(){
+    int i,j;
+    for(i=0;i<8;i++)
+        for(j=0;j<8;j++)
+            board[i][j] = 0;
+    board[7][1] = 1;//leftmost dog
+    board[7][3] = 2;//dog
+    board[7][5] = 3;//dog
+    board[7][7] = 4;//rightmost dog
+    board[0][4] = 5;//fox
+}
+
+void drawBoard(){
+
+    //draw the board
+    /* request autodetection */
+    int a=DETECT,b,c;
+    int x,y,i,j,k=0,poly[8],l,m=0;
+    /* initialize graphics and local variables */
+    initgraph(&a,&b,"\\tc\\bgi");
+    x=getmaxx()/8;
+    y=getmaxy()/8;
+
+    //check for errors
+    /* read result of initialization */
+    errorcode = graphresult();
+
+    if (errorcode != grOk) {  /* an error occurred */
+
+        printf("Graphics error: %s\n", grapherrormsg(errorcode));
+        printf("Press any key to halt:");
+        getch();
+        exit(1);/* terminate with an error code */
+    }
+    //draw the board
+    for(i=1,k+=y;m<8;i+=y,m++)
+        for(j=1,l=0;l<8;j+=x,l++) {
+            if((l%2==1 && m%2==0) || (l%2==0 && m%2==1)) {
+                setcolor(12);
+                setfillstyle(1,15);
+                poly[0]=j;
+                poly[1]=i;
+                poly[2]=j+x;
+                poly[3]=i;
+                poly[4]=j+x;
+                poly[5]=k+i;
+                poly[6]=j;
+                poly[7]=k+i;
+                fillpoly(4,poly);//????? we have to see what this code does
+            }
+            if(m==7 && l==0) {
+                setcolor(15);
+                dogs(i,j,k);
+            }
+
+            if(m==7 && l==2) {
+                setcolor(15);
+                dogs(i,j,k);
+            }
+
+            if(m==7 && l==4){
+                setcolor(15);
+                dogs(i,j,k);
+            }
+            if(m==7 && l==6){
+                setcolor(15);
+                dogs(i,j,k);
+            }
+
+            if(m==0 && l==3){
+                setcolor(0);
+                fox(i,j,k);
+            }
+        }
+    /* clean up */
+    getch();
+    closegraph();
+}
+
+void printMatrix() {
+    for(int i=0;i<8;i++){
+        for(int j=0;j<8;j++)
+            cout<<board[i][j]<<' ';
+        cout<<endl;
+    }
+}
+
+bool moveIsValid ( position moveFrom, position moveTo ) {
+    if( board[moveTo.i][moveTo.j]==0 ){ //if the target field is free
+        if( board[moveFrom.i][moveFrom.j]==5 ){ //if it's a fox it can move both upwards and downwards
+            if(
+                (moveTo.i == moveFrom.i + 1 && moveTo.j == moveFrom.j + 1) ||
+                (moveTo.i == moveFrom.i + 1 && moveTo.j == moveFrom.j - 1) ||
+                (moveTo.i == moveFrom.i - 1 && moveTo.j == moveFrom.j + 1) ||
+                (moveTo.i == moveFrom.i - 1 && moveTo.j == moveFrom.j - 1) )
+                    return true;
+        } else { //if it's a dog it can move only upwards
+            if(
+                (moveTo.i == moveFrom.i - 1 && moveTo.j == moveFrom.j + 1) ||
+                (moveTo.i == moveFrom.i - 1 && moveTo.j == moveFrom.j - 1) )
+                    return true;
+        }
+    }
+    return false;
+}
+
+void movePiece(position moveFrom, position moveTo){
+
+    if( moveIsValid(moveFrom, moveTo) ){
+        board[moveTo.i][moveTo.j] = board[moveFrom.i][moveFrom.j];
+        board[moveFrom.i][moveFrom.j] = 0;
+        //we have to graphically do the move as well
+    }
+}
+
+void resetGame(){
+    generateMatrix();
+    drawBoard();
+    //update the score somewhere
+}
+void fox(int i,int j,int k) {
+    ellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),0,360,17,17);
+    fillellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),17,17);
+    setcolor(120);
+    setfillstyle(1,120);
+    ellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),0,360,10,10);
+    fillellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),10,10);
+}
+void dogs(int i,int j,int k) {
+    ellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),0,360,17,17);
+    fillellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),17,17);
+    setcolor(120);
+    setfillstyle(1,120);
+
+    ellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),0,360,10,10);
+    fillellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),10,10);
 }

@@ -7,7 +7,7 @@
 
 using namespace std;
 
-#define clear() printf(“\033[H\033[J”)
+
 void dogs(int i,int j,int k);
 void fox(int i,int j,int k);
 bool win = false;
@@ -64,7 +64,6 @@ void tabla(int v[8][8],int l,int m,int x,int y)
     }
 }
 
-
 int main(void)
 {
 int prevx,prevy;
@@ -100,7 +99,7 @@ while (!win)
                     v[aux2][aux1]=1;
                     prevx=aux2;
                     prevy=aux1;
-                    turn = 2;
+                  //  turn = 2;
                     tabla(v,0,0,x,y);
                 }
 
@@ -110,7 +109,7 @@ while (!win)
                 cout<<endl;
             }
 
-            delay(100);
+          //  delay(100);
           //  turn=2;
           if(ok == 1)
             turn = 2;
@@ -127,6 +126,7 @@ while (!win)
   getch();
   closegraph();
 }
+
 void dogs(int i,int j,int k)
 {
  ellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),0,360,17,17);

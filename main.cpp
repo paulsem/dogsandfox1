@@ -3,21 +3,15 @@
 #include<conio.h>
 #include<graphics.h>
 #include<dos.h>SSA
-
 using namespace std;
 
 //global variables
-
-int win = 0;
-int turn = 1;
-int x,y;
-
+int win = 0, turn = 1, x, y, aux1, aux2, mode = 0, numberOfStepsInStrategy = 1;
 struct position {
     int i, j;
-}moveFrom, moveTo;
+} moveFrom, moveTo;
 
 //functions
-
 void dogs(int i,int j,int k);
 void fox(int i,int j,int k);
 void generateMatrix(int board[8][8]);
@@ -28,12 +22,24 @@ void drawBoard(int board[8][8],int m, int l, int x, int y);
 void getMoveFromOnClick(int x1, int y1);
 void getMoveToOnClick(int x1, int y1);
 void initBoard(int board[8][8]);
-bool moveIsValid (int board[8][8],position moveFrom, position moveTo, int turn );
 void updateMatrix(int board[8][8],position moveFrom, position moveTo);
-bool didTheFoxWin(int board[8][8],position moveTo);
 void foxWins();
+void mainMenu();
+void getCoordonates(int x1,int y1);
+void moveDogs(int board[8][8]);
+bool didTheFoxWin(int board[8][8],position moveTo);
+bool moveIsValid (int board[8][8],position moveFrom, position moveTo, int turn );
+void checkStrategy(int board[8][8]);
+void defaultStrategy(int board[8][8]);
+void firstStrategy(int board[8][8],int line);
+void secondStrategy(int board[8][8],int line);
+void thirdStrategy(int board[8][8],int line);
+void thirdStrategyOne(int board[8][8],int line);
+void moveADogInStrategy(int board[8][8], int i1,int i2,int j1,int j2);
+void startPlay(int board[8][8]);
 
 int main(){
+    mainMenu();
     int board[8][8];
 
     generateMatrix(board);
@@ -44,10 +50,19 @@ int main(){
 
     registermousehandler(WM_LBUTTONDOWN, getMoveFromOnClick);
     registermousehandler(WM_LBUTTONUP, getMoveToOnClick);
-    foxWins();
 
-    while (win == 0){
+    startPlay(board);
 
+    getch();
+    closegraph();
+    return 0;
+}
+
+//function definitions
+void startPlay(int board[8][8]){
+    if(win==1)
+        foxWins();
+    else {
             drawBoard(board,0,0,x,y);
             system("cls");
             cout<<turn;
@@ -60,25 +75,333 @@ int main(){
                 updateMatrix(board,moveFrom,moveTo);
                 printMatrix(board);
                 cout<<turn;
-                if(turn==1)turn=2;
-                else turn=1;
+                if(turn==1)
+                    turn=2;
+                else
+                    if(mode == 2)
+                        turn=1;
                 drawBoard(board,0,0,x,y);
             }
+            if(turn == 2 && mode == 1){
+                checkStrategy(board);
+                drawBoard(board,0,0,x,y);
+                turn = 1;
+            }
         printMatrix(board);
+        startPlay(board);
     }
-
-    if(win == 1){
-        cout<<endl<<" a castigat vulpea ";
-    }
-    getch();
-    closegraph();
-    return 0;
 }
+void checkStrategy(int board[8][8]){
+    for(int i=0;i<8;i+=2){
 
-//function definitions
+        if(board[i][5]==5 && board[i][1]!=0 && board[i][3]!=0 && board[i+1][4]!=0 && board[i+1][6]!=0){
+            numberOfStepsInStrategy = 1;
+            cout<<"strat 3";
+            thirdStrategy(board,i);
 
+        }
+        else if(board[i][3]==5 && board[i][1]!=0 && board[i+1][2]!=0 && board[i+1][4]!=0 && board[i+1][6]!=0){
+            numberOfStepsInStrategy = 1;
+            cout<<"strat 2";
+            secondStrategy(board,i);
+
+        }
+        else if(board[i][1]==5 && board[i+1][0]!=0 && board[i+1][2]!=0 && board[i+1][4]!=0 && board[i+1][6]!=0){
+            numberOfStepsInStrategy = 1;
+            cout<<"strat 1";
+            firstStrategy(board,i);
+
+        }
+        else{
+            cout<<"default";
+            system("cls");
+            defaultStrategy(board);
+
+        }
+    }
+    for(int i=1;i<8;i+=2){
+
+        if(board[i][2]==5 && board[i+1][1]!=0 && board[i+1][3]!=0 &&board[i][4]!=0 && board[i][6]!=0){
+            numberOfStepsInStrategy = 1;
+            thirdStrategy(board,i);
+        }
+        else if(board[i][3]==5 && board[i][1]!=0 && board[i+1][2]!=0 &&board[i+1][4]!=0 && board[i+1][6]!=0){
+            numberOfStepsInStrategy = 1;
+            secondStrategy(board,i);
+        }
+        else if(board[i][6]==5 && board[i+1][1]!=0 && board[i+1][3]!=0 &&board[i+1][5]!=0 && board[i+1][7]!=0){
+            numberOfStepsInStrategy = 1;
+            firstStrategy(board,i);
+        }
+        else
+            defaultStrategy(board);
+    }
+}
+void moveADogInStrategy(int board[8][8], int i1,int i2,int j1,int j2){
+    position moveFromLocal, moveToLocal;
+    moveFromLocal.i = i1;
+    moveFromLocal.j = j1;
+    moveToLocal.i = i2;
+    moveToLocal.j = j2;
+    updateMatrix(board,moveFromLocal,moveToLocal);
+    numberOfStepsInStrategy++;
+}
+void firstStrategy(int board[8][8], int line){
+    if(turn == 2){
+        if(numberOfStepsInStrategy>=9)
+            checkStrategy(board);
+        else {
+            if(numberOfStepsInStrategy==1){
+                if(line%2==0)
+                    moveADogInStrategy(board,line+1,line,4,3);
+                else
+                    moveADogInStrategy(board,line+1,line,3,4);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==2){
+                if(line%2==0)
+                    moveADogInStrategy(board,line+1,line,0,1);
+                else
+                    moveADogInStrategy(board,line+1,line,7,6);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==3){
+                if(line%2==0)
+                    moveADogInStrategy(board,line,line-1,3,4);
+                else
+                    moveADogInStrategy(board,line,line-1,4,3);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==4){
+                if(line%2==0)
+                    moveADogInStrategy(board,line-1,line,2,3);
+                else
+                    moveADogInStrategy(board,line-1,line,5,4);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==5){
+                if(line%2==0)
+                    moveADogInStrategy(board,line,line-1,3,2);
+                else
+                    moveADogInStrategy(board,line,line-1,4,5);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==6){
+                if(line%2==0)
+                    moveADogInStrategy(board,line+1,line,6,5);
+                else
+                    moveADogInStrategy(board,line+1,line,1,2);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==7){
+                if(line%2==0)
+                    moveADogInStrategy(board,line,line-1,5,6);
+                else
+                    moveADogInStrategy(board,line,line-1,2,1);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==8){
+                if(line%2==0)
+                    moveADogInStrategy(board,line,line-1,1,0);
+                else
+                    moveADogInStrategy(board,line,line-1,6,7);
+                firstStrategy(board,line);
+            }
+        }
+    }
+}
+void secondStrategy(int board[8][8], int line){
+    if(turn == 2){
+        if(numberOfStepsInStrategy>=6)
+            checkStrategy(board);
+        else {
+            if(numberOfStepsInStrategy==1){
+                if(line%2==0)
+                    moveADogInStrategy(board,line+1,line,6,5);
+                else
+                    moveADogInStrategy(board,line+1,line,1,2);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==2){
+                if(line%2==0)
+                    moveADogInStrategy(board,line+1,line,2,3);
+                else
+                    moveADogInStrategy(board,line+1,line,5,4);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==3){
+                if(line%2==0)
+                    moveADogInStrategy(board,line,line-1,5,6);
+                else
+                    moveADogInStrategy(board,line,line-1,2,1);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==4){
+                if(line%2==0)
+                    moveADogInStrategy(board,line+1,line,4,5);
+                else
+                    moveADogInStrategy(board,line+1,line,3,2);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==5){
+                if(line%2==0)
+                    moveADogInStrategy(board,line,line-1,5,4);
+                else
+                    moveADogInStrategy(board,line,line-1,2,3);
+                firstStrategy(board,line);
+            }
+        }
+    }
+}
+void thirdStrategyOne(int board[8][8], int line){
+    if(turn == 2){
+        if(numberOfStepsInStrategy>=9)
+            checkStrategy(board);
+        else {
+            if(numberOfStepsInStrategy==2){
+                if(line%2==0)
+                    moveADogInStrategy(board,line,line-1,1,2);
+                else
+                    moveADogInStrategy(board,line,line-1,6,5);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==3){
+                if(line%2==0)
+                    moveADogInStrategy(board,line+1,line,6,7);
+                else
+                    moveADogInStrategy(board,line+1,line,1,0);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==4){
+                if(line%2==0)
+                    moveADogInStrategy(board,line,line-1,7,6);
+                else
+                    moveADogInStrategy(board,line,line-1,0,1);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==5){
+                if(line%2==0)
+                    moveADogInStrategy(board,line+1,line,4,3);
+                else
+                    moveADogInStrategy(board,line+1,line,3,4);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==6){
+                if(line%2==0)
+                    moveADogInStrategy(board,line-1,line-2,2,1);
+                else
+                    moveADogInStrategy(board,line-1,line-2,5,6);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==7){
+                if(line%2==0)
+                    moveADogInStrategy(board,line,line-1,3,2);
+                else
+                    moveADogInStrategy(board,line,line-1,4,5);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==8){
+                if(line%2==0)
+                    moveADogInStrategy(board,line-1,line-2,2,3);
+                else
+                    moveADogInStrategy(board,line-1,line-2,5,4);
+                firstStrategy(board,line);
+            }
+        }
+    }
+}
+void thirdStrategyTwo(int board[8][8], int line){
+    if(turn == 2){
+        if(numberOfStepsInStrategy>=9)
+            checkStrategy(board);
+        else {
+            if(numberOfStepsInStrategy==2){
+                if(line%2==0)
+                    moveADogInStrategy(board,line+1,line,4,5);
+                else
+                    moveADogInStrategy(board,line+1,line,3,2);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==3){
+                if(line%2==0)
+                    moveADogInStrategy(board,line+1,line,6,7);
+                else
+                    moveADogInStrategy(board,line+1,line,1,0);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==4){
+                if(line%2==0)
+                    moveADogInStrategy(board,line,line-1,7,6);
+                else
+                    moveADogInStrategy(board,line,line-1,0,1);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==5){
+                if(line%2==0)
+                    moveADogInStrategy(board,line,line-1,5,4);
+                else
+                    moveADogInStrategy(board,line,line-1,2,3);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==6){
+                if(line%2==0)
+                    moveADogInStrategy(board,line-1,line-2,2,1);
+                else
+                    moveADogInStrategy(board,line-1,line-2,5,6);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==7){
+                if(line%2==0)
+                    moveADogInStrategy(board,line,line-1,3,4);
+                else
+                    moveADogInStrategy(board,line,line-1,4,3);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==8){
+                if(line%2==0)
+                    moveADogInStrategy(board,line-1,line-2,2,3);
+                else
+                    moveADogInStrategy(board,line-1,line-2,5,4);
+                firstStrategy(board,line);
+            }
+        }
+    }
+}
+void thirdStrategy(int board[8][8], int line){
+    if(turn == 2){
+        if(numberOfStepsInStrategy>=9)
+            checkStrategy(board);
+        else {
+            if(numberOfStepsInStrategy==1){
+                if(line%2==0)
+                    moveADogInStrategy(board,line,line-1,3,4);
+                else
+                    moveADogInStrategy(board,line,line-1,4,3);
+                firstStrategy(board,line);
+            }
+            else if(numberOfStepsInStrategy==2){
+                if(board[5][4]==5 || board[2][3]==5)
+                    thirdStrategyOne(board,line);
+                else
+                    thirdStrategyTwo(board,line);
+            }
+        }
+    }
+}
+void defaultStrategy(int board[8][8]){
+    if(turn == 2){
+        for(int i=0;i<8;i++){
+            if(board[7][i]!=0){
+                board[6][i+1] = board[7][i];
+                board[7][i]=0;
+                i=8;
+                turn = 1;
+            }
+        }
+        checkStrategy(board);
+    }
+}
 void getMoveFromOnClick(int x1, int y1){
-
     moveFrom.j=x1/90;
     moveFrom.i=y1/90;
 }
@@ -86,7 +409,56 @@ void getMoveToOnClick(int x1, int y1){
     moveTo.j=x1/90;
     moveTo.i=y1/90;
 }
+void getCoordonates(int x1,int y1){
+    aux1=x1;
+    aux2=y1;
+}
+void mainMenu(){
+    int style, midx, midy;
+    int size = 1;
+    initwindow(720, 720);
+    setbkcolor(BLUE);
+    moveto(50,50);
 
+    midx = getmaxx() / 2;
+    midy = getmaxy() / 2;
+
+    settextstyle(BOLD_FONT, HORIZ_DIR, 6);
+    settextjustify(1,1);
+    outtextxy(midx, 100, "THE FOX AND THE DOGS");
+    int left, top, right, bottom;
+    left = 200;
+    top = 260;
+
+
+
+   registermousehandler(WM_LBUTTONDOWN, getCoordonates);
+   /* draw a rectangle */
+   while(mode==0){
+       cout<<aux1<<"   "<<aux2;
+       //settextstyle(BOLD_FONT, HORIZ_DIR, 6);
+
+       outtextxy(midx, midy-100, "SINGLE PLAYER");
+       outtextxy(midx, midy, "MULTYPLAYER");
+       outtextxy(midx, midy+100, "EXIT");
+       system("cls");
+       //delay(500);
+
+
+       if(aux1>=156 && aux1<=562 &&aux2<=274 && aux2>=222)
+            mode = 1;
+       if(aux1>=187 && aux1<=530 &&aux2<=373 && aux2>=321)
+            mode = 2;
+       if(aux1>=297 && aux1<=420 &&aux2<=472 && aux2>=422)
+            mode = 3;
+   }
+
+
+    cout<<mode;
+//    _getch();
+    closegraph();
+
+}
 void generateMatrix(int board[8][8]){
     int i,j;
     for(i=0;i<8;i++)
@@ -118,92 +490,6 @@ bool didTheFoxWin(int board[8][8],position moveTo){
 void foxWins(){
     cout<<"the fox wins";
 }
-
-
-    int gdriver = DETECT, gmode, errorcode;
-
-   struct textsettingstype textinfo;
-
-   int midx, midy, ht;
-
-   char fontstr[80], dirstr[80], sizestr[80];
-
-   char hjuststr[80], vjuststr[80];
-
-
-
-   /* initialize graphics and local variables */
-
-   initgraph(&gdriver, &gmode, "");
-
-
-
-   /* read result of initialization */
-
-   errorcode = graphresult();
-
-   if (errorcode != grOk) {  /* an error occurred */
-
-
-
-      printf("Graphics error: %s\n", grapherrormsg(errorcode));
-
-      printf("Press any key to halt:");
-
-      getch();
-
-      exit(1);               /* terminate with an error code */
-
-   }
-
-
-
-   midx = getmaxx() / 2;
-
-   midy = getmaxy() / 2;
-
-
-
-   /* get information about current text settings */
-
-   gettextsettings(&textinfo);
-
-
-
-   /* convert text information into strings */
-
-   sprintf(fontstr, "%s is the text style.", font[textinfo.font]);
-
-  sprintf(dirstr, "%s is the text direction.",dir[textinfo.direction]);
-
-
-
-  sprintf(sizestr, "%d is the text size.", textinfo.charsize);
-
-  sprintf(hjuststr, "%s is the horizontal justification.", hjust[textinfo.horiz]);
-
-  sprintf(vjuststr, "%s is the vertical justification.", vjust[textinfo.vert]);
-
-
-
-   /* display the information */
-
-   ht = textheight("W");
-
-   settextjustify(CENTER_TEXT, CENTER_TEXT);
-
-   outtextxy(midx, midy, fontstr);
-
-   outtextxy(midx, midy+2*ht, dirstr);
-
-   outtextxy(midx, midy+4*ht, sizestr);
-
-   outtextxy(midx, midy+6*ht, hjuststr);
-
-
-
-   outtextxy(midx, midy+8*ht, vjuststr);
-}
 void drawBoard(int board[8][8],int m, int l, int x, int y){
     //draw the board
 
@@ -234,7 +520,6 @@ void drawBoard(int board[8][8],int m, int l, int x, int y){
             }
         }
 }
-
 void printMatrix(int board[8][8]) {
     for(int i=0;i<8;i++){
         for(int j=0;j<8;j++)
@@ -242,7 +527,6 @@ void printMatrix(int board[8][8]) {
         cout<<endl;
     }
 }
-
 bool moveIsValid (int board[8][8], position moveFrom, position moveTo, int turn ) {
     if( board[moveTo.i][moveTo.j]==0 ){ //if the target field is free
         if( turn == 1 && board[moveFrom.i][moveFrom.j]==5 ){ //if it's a fox & it's its turn
@@ -259,13 +543,11 @@ bool moveIsValid (int board[8][8], position moveFrom, position moveTo, int turn 
     }
     return false;
 }
-
 void resetGame(int board[8][8]){
     generateMatrix(board);
     drawBoard(board,0,0,x,y);
     //update the score somewhere
 }
-
 void fox(int i,int j,int k) {
     ellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),0,360,17,17);
     fillellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),17,17);

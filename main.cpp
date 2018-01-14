@@ -6,6 +6,7 @@
 using namespace std;
 
 int win = 0, turn = 1, x, y, aux1, aux2, mode = 0, numberOfStepsInStrategy = 1;
+int currentLine, whatStrategyAreWeIn;
 //turn=1 => fox's turn
 //turn=2 => dogs' turn
 struct position {
@@ -85,7 +86,12 @@ void startPlay(int board[8][8]){
                 drawBoard(board,0,0,x,y);
             }
             if(turn == 2 && mode == 1){
-                checkStrategy(board);
+                if(whatStrategyAreWeIn == 0) checkStrategy(board);
+                else if(whatStrategyAreWeIn == 1) firstStrategy(board,currentLine);
+                else if(whatStrategyAreWeIn == 2) secondStrategy(board,currentLine);
+                else if(whatStrategyAreWeIn == 3) thirdStrategy(board,currentLine);
+                else if(whatStrategyAreWeIn == 4) thirdStrategyOne(board,currentLine);
+                else if(whatStrategyAreWeIn == 5) thirdStrategyTwo(board,currentLine);
                 drawBoard(board,0,0,x,y);
                 turn = 1;
             }
@@ -98,45 +104,61 @@ void checkStrategy(int board[8][8]){
 
         if(board[i][5]==5 && board[i][1]!=0 && board[i][3]!=0 && board[i+1][4]!=0 && board[i+1][6]!=0){
             numberOfStepsInStrategy = 1;
-            cout<<"strat 3";
+            cout<<"start 3";
+            currentLine=i;
+            whatStrategyAreWeIn=3;
             thirdStrategy(board,i);
 
         }
         else if(board[i][3]==5 && board[i][1]!=0 && board[i+1][2]!=0 && board[i+1][4]!=0 && board[i+1][6]!=0){
             numberOfStepsInStrategy = 1;
-            cout<<"strat 2";
+            cout<<"start 2";
+            currentLine=i;
+            whatStrategyAreWeIn=2;
             secondStrategy(board,i);
 
         }
         else if(board[i][1]==5 && board[i+1][0]!=0 && board[i+1][2]!=0 && board[i+1][4]!=0 && board[i+1][6]!=0){
             numberOfStepsInStrategy = 1;
-            cout<<"strat 1";
+            cout<<"start 1";
+            currentLine=i;
+            whatStrategyAreWeIn=1;
             firstStrategy(board,i);
 
         }
         else{
             cout<<"default";
             system("cls");
+            currentLine=i;
+            whatStrategyAreWeIn=0;
             defaultStrategy(board);
-
         }
     }
     for(int i=1;i<8;i+=2){
 
         if(board[i][2]==5 && board[i+1][1]!=0 && board[i+1][3]!=0 &&board[i][4]!=0 && board[i][6]!=0){
             numberOfStepsInStrategy = 1;
+            currentLine=i;
+            whatStrategyAreWeIn=3;
             thirdStrategy(board,i);
         }
         else if(board[i][3]==5 && board[i][1]!=0 && board[i+1][2]!=0 &&board[i+1][4]!=0 && board[i+1][6]!=0){
             numberOfStepsInStrategy = 1;
+            currentLine=i;
+            whatStrategyAreWeIn=2;
             secondStrategy(board,i);
         }
         else if(board[i][6]==5 && board[i+1][1]!=0 && board[i+1][3]!=0 &&board[i+1][5]!=0 && board[i+1][7]!=0){
             numberOfStepsInStrategy = 1;
+            currentLine=i;
+            whatStrategyAreWeIn=1;
             firstStrategy(board,i);
         }
-        else
+        else {
+            currentLine=i;
+            whatStrategyAreWeIn=0;
             defaultStrategy(board);
+        }
     }
 }
 void moveADogInStrategy(int board[8][8], int i1,int i2,int j1,int j2){
@@ -147,11 +169,15 @@ void moveADogInStrategy(int board[8][8], int i1,int i2,int j1,int j2){
     moveToLocal.j = j2;
     updateMatrix(board,moveFromLocal,moveToLocal);
     numberOfStepsInStrategy++;
+    if(turn == 2)
+        turn = 1;
 }
 void firstStrategy(int board[8][8], int line){
     if(turn == 2){
-        if(numberOfStepsInStrategy>=9)
+        if(numberOfStepsInStrategy>=9){
+            whatStrategyAreWeIn=0;
             checkStrategy(board);
+        }
         else {
             if(numberOfStepsInStrategy==1){
                 if(line%2==0)
@@ -214,178 +240,190 @@ void firstStrategy(int board[8][8], int line){
 }
 void secondStrategy(int board[8][8], int line){
     if(turn == 2){
-        if(numberOfStepsInStrategy>=6)
+        if(numberOfStepsInStrategy>=6){
+            whatStrategyAreWeIn=0;
             checkStrategy(board);
+        }
         else {
             if(numberOfStepsInStrategy==1){
                 if(line%2==0)
                     moveADogInStrategy(board,line+1,line,6,5);
                 else
                     moveADogInStrategy(board,line+1,line,1,2);
-                firstStrategy(board,line);
+                secondStrategy(board,line);
             }
             else if(numberOfStepsInStrategy==2){
                 if(line%2==0)
                     moveADogInStrategy(board,line+1,line,2,3);
                 else
                     moveADogInStrategy(board,line+1,line,5,4);
-                firstStrategy(board,line);
+                secondStrategy(board,line);
             }
             else if(numberOfStepsInStrategy==3){
                 if(line%2==0)
                     moveADogInStrategy(board,line,line-1,5,6);
                 else
                     moveADogInStrategy(board,line,line-1,2,1);
-                firstStrategy(board,line);
+                secondStrategy(board,line);
             }
             else if(numberOfStepsInStrategy==4){
                 if(line%2==0)
                     moveADogInStrategy(board,line+1,line,4,5);
                 else
                     moveADogInStrategy(board,line+1,line,3,2);
-                firstStrategy(board,line);
+                secondStrategy(board,line);
             }
             else if(numberOfStepsInStrategy==5){
                 if(line%2==0)
                     moveADogInStrategy(board,line,line-1,5,4);
                 else
                     moveADogInStrategy(board,line,line-1,2,3);
-                firstStrategy(board,line);
+                secondStrategy(board,line);
             }
         }
     }
 }
 void thirdStrategyOne(int board[8][8], int line){
     if(turn == 2){
-        if(numberOfStepsInStrategy>=9)
+        if(numberOfStepsInStrategy>=9){
+            whatStrategyAreWeIn=0;
             checkStrategy(board);
+        }
         else {
             if(numberOfStepsInStrategy==2){
                 if(line%2==0)
                     moveADogInStrategy(board,line,line-1,1,2);
                 else
                     moveADogInStrategy(board,line,line-1,6,5);
-                firstStrategy(board,line);
+                thirdStrategyOne(board,line);
             }
             else if(numberOfStepsInStrategy==3){
                 if(line%2==0)
                     moveADogInStrategy(board,line+1,line,6,7);
                 else
                     moveADogInStrategy(board,line+1,line,1,0);
-                firstStrategy(board,line);
+                thirdStrategyOne(board,line);
             }
             else if(numberOfStepsInStrategy==4){
                 if(line%2==0)
                     moveADogInStrategy(board,line,line-1,7,6);
                 else
                     moveADogInStrategy(board,line,line-1,0,1);
-                firstStrategy(board,line);
+                thirdStrategyOne(board,line);
             }
             else if(numberOfStepsInStrategy==5){
                 if(line%2==0)
                     moveADogInStrategy(board,line+1,line,4,3);
                 else
                     moveADogInStrategy(board,line+1,line,3,4);
-                firstStrategy(board,line);
+                thirdStrategyOne(board,line);
             }
             else if(numberOfStepsInStrategy==6){
                 if(line%2==0)
                     moveADogInStrategy(board,line-1,line-2,2,1);
                 else
                     moveADogInStrategy(board,line-1,line-2,5,6);
-                firstStrategy(board,line);
+                thirdStrategyOne(board,line);
             }
             else if(numberOfStepsInStrategy==7){
                 if(line%2==0)
                     moveADogInStrategy(board,line,line-1,3,2);
                 else
                     moveADogInStrategy(board,line,line-1,4,5);
-                firstStrategy(board,line);
+                thirdStrategyOne(board,line);
             }
             else if(numberOfStepsInStrategy==8){
                 if(line%2==0)
                     moveADogInStrategy(board,line-1,line-2,2,3);
                 else
                     moveADogInStrategy(board,line-1,line-2,5,4);
-                firstStrategy(board,line);
+                thirdStrategyOne(board,line);
             }
         }
     }
 }
 void thirdStrategyTwo(int board[8][8], int line){
     if(turn == 2){
-        if(numberOfStepsInStrategy>=9)
+        if(numberOfStepsInStrategy>=9){
+            whatStrategyAreWeIn=0;
             checkStrategy(board);
+        }
         else {
             if(numberOfStepsInStrategy==2){
                 if(line%2==0)
                     moveADogInStrategy(board,line+1,line,4,5);
                 else
                     moveADogInStrategy(board,line+1,line,3,2);
-                firstStrategy(board,line);
+                thirdStrategyTwo(board,line);
             }
             else if(numberOfStepsInStrategy==3){
                 if(line%2==0)
                     moveADogInStrategy(board,line+1,line,6,7);
                 else
                     moveADogInStrategy(board,line+1,line,1,0);
-                firstStrategy(board,line);
+                thirdStrategyTwo(board,line);
             }
             else if(numberOfStepsInStrategy==4){
                 if(line%2==0)
                     moveADogInStrategy(board,line,line-1,7,6);
                 else
                     moveADogInStrategy(board,line,line-1,0,1);
-                firstStrategy(board,line);
+                thirdStrategyTwo(board,line);
             }
             else if(numberOfStepsInStrategy==5){
                 if(line%2==0)
                     moveADogInStrategy(board,line,line-1,5,4);
                 else
                     moveADogInStrategy(board,line,line-1,2,3);
-                firstStrategy(board,line);
+                thirdStrategyTwo(board,line);
             }
             else if(numberOfStepsInStrategy==6){
                 if(line%2==0)
                     moveADogInStrategy(board,line-1,line-2,2,1);
                 else
                     moveADogInStrategy(board,line-1,line-2,5,6);
-                firstStrategy(board,line);
+                thirdStrategyTwo(board,line);
             }
             else if(numberOfStepsInStrategy==7){
                 if(line%2==0)
                     moveADogInStrategy(board,line,line-1,3,4);
                 else
                     moveADogInStrategy(board,line,line-1,4,3);
-                firstStrategy(board,line);
+                thirdStrategyTwo(board,line);
             }
             else if(numberOfStepsInStrategy==8){
                 if(line%2==0)
                     moveADogInStrategy(board,line-1,line-2,2,3);
                 else
                     moveADogInStrategy(board,line-1,line-2,5,4);
-                firstStrategy(board,line);
+                thirdStrategyTwo(board,line);
             }
         }
     }
 }
 void thirdStrategy(int board[8][8], int line){
     if(turn == 2){
-        if(numberOfStepsInStrategy>=9)
+        if(numberOfStepsInStrategy>=9){
+            whatStrategyAreWeIn=0;
             checkStrategy(board);
+        }
         else {
             if(numberOfStepsInStrategy==1){
                 if(line%2==0)
                     moveADogInStrategy(board,line,line-1,3,4);
                 else
                     moveADogInStrategy(board,line,line-1,4,3);
-                firstStrategy(board,line);
+                thirdStrategy(board,line);
             }
             else if(numberOfStepsInStrategy==2){
-                if(board[5][4]==5 || board[2][3]==5)
+                if(board[5][4]==5 || board[2][3]==5){
+                    whatStrategyAreWeIn=4;
                     thirdStrategyOne(board,line);
-                else
+                }
+                else {
+                    whatStrategyAreWeIn=5;
                     thirdStrategyTwo(board,line);
+                }
             }
         }
     }
@@ -412,8 +450,8 @@ void getMoveToOnClick(int x1, int y1){
     moveTo.i=y1/90;
 }
 void getCoordonates(int x1,int y1){
-    menuCoordinates.x=x1;
-    menuCoordinates.y=y1;
+    menuCoordinates.i=x1;
+    menuCoordinates.j=y1;
 }
 void mainMenu(){
     int style, midx, midy;
@@ -434,18 +472,18 @@ void mainMenu(){
     registermousehandler(WM_LBUTTONDOWN, getCoordonates);
     /* draw a rectangle */
     while(mode==0){
-       cout<<menuCoordinates.x<<"   "<<menuCoordinates.y;
+       cout<<menuCoordinates.i<<"   "<<menuCoordinates.j;
 
        outtextxy(midx, midy-100, "PLAYER VS. COMPUTER");
        outtextxy(midx, midy, "PLAYER VS. PLAYER");
        outtextxy(midx, midy+100, "EXIT");
        system("cls");
 
-       if(menuCoordinates.x>=156 && menuCoordinates.x<=562 &&menuCoordinates.y<=274 && menuCoordinates.y>=222)
+       if(menuCoordinates.i>=156 && menuCoordinates.i<=562 &&menuCoordinates.j<=274 && menuCoordinates.j>=222)
             mode = 1;
-       if(menuCoordinates.x>=187 && menuCoordinates.x<=530 &&menuCoordinates.y<=373 && menuCoordinates.y>=321)
+       if(menuCoordinates.i>=187 && menuCoordinates.i<=530 &&menuCoordinates.j<=373 && menuCoordinates.j>=321)
             mode = 2;
-       if(menuCoordinates.x>=297 && menuCoordinates.x<=420 &&menuCoordinates.y<=472 && menuCoordinates.y>=422)
+       if(menuCoordinates.i>=297 && menuCoordinates.i<=420 &&menuCoordinates.j<=472 && menuCoordinates.j>=422)
             mode = 3;
     }
     cout<<mode;

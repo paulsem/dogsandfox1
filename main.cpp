@@ -5,13 +5,13 @@
 #include<dos.h>SSA
 using namespace std;
 
-//global variables
 int win = 0, turn = 1, x, y, aux1, aux2, mode = 0, numberOfStepsInStrategy = 1;
+//turn=1 => fox's turn
+//turn=2 => dogs' turn
 struct position {
     int i, j;
-} moveFrom, moveTo;
+} moveFrom, moveTo,menuCoordinates;
 
-//functions
 void dogs(int i,int j,int k);
 void fox(int i,int j,int k);
 void generateMatrix(int board[8][8]);
@@ -21,7 +21,6 @@ void movePiece(int board[8][8],position moveFrom, position moveTo);
 void drawBoard(int board[8][8],int m, int l, int x, int y);
 void getMoveFromOnClick(int x1, int y1);
 void getMoveToOnClick(int x1, int y1);
-void initBoard(int board[8][8]);
 void updateMatrix(int board[8][8],position moveFrom, position moveTo);
 void foxWins();
 void mainMenu();
@@ -37,20 +36,17 @@ void thirdStrategy(int board[8][8],int line);
 void thirdStrategyOne(int board[8][8],int line);
 void moveADogInStrategy(int board[8][8], int i1,int i2,int j1,int j2);
 void startPlay(int board[8][8]);
+void initialiseWindow(int board[8][8]);
 
 int main(){
-    mainMenu();
-    int board[8][8];
 
+    mainMenu();
+
+    int board[8][8];
     generateMatrix(board);
     printMatrix(board);
-    initwindow(720, 720);
-    x=getmaxx()/8;
-    y=getmaxy()/8;
 
-    registermousehandler(WM_LBUTTONDOWN, getMoveFromOnClick);
-    registermousehandler(WM_LBUTTONUP, getMoveToOnClick);
-
+    initialiseWindow(board);
     startPlay(board);
 
     getch();
@@ -58,7 +54,13 @@ int main(){
     return 0;
 }
 
-//function definitions
+void initialiseWindow(int board[8][8]){
+    initwindow(720, 720);
+    x=getmaxx()/8;
+    y=getmaxy()/8;
+    registermousehandler(WM_LBUTTONDOWN, getMoveFromOnClick);
+    registermousehandler(WM_LBUTTONUP, getMoveToOnClick);
+}
 void startPlay(int board[8][8]){
     if(win==1)
         foxWins();
@@ -410,8 +412,8 @@ void getMoveToOnClick(int x1, int y1){
     moveTo.i=y1/90;
 }
 void getCoordonates(int x1,int y1){
-    aux1=x1;
-    aux2=y1;
+    menuCoordinates.x=x1;
+    menuCoordinates.y=y1;
 }
 void mainMenu(){
     int style, midx, midy;
@@ -425,37 +427,28 @@ void mainMenu(){
 
     settextstyle(BOLD_FONT, HORIZ_DIR, 6);
     settextjustify(1,1);
-    outtextxy(midx, 100, "THE FOX AND THE DOGS");
+    outtextxy(midx, 100, "FOX AND HOUNDS");
     int left, top, right, bottom;
     left = 200;
     top = 260;
+    registermousehandler(WM_LBUTTONDOWN, getCoordonates);
+    /* draw a rectangle */
+    while(mode==0){
+       cout<<menuCoordinates.x<<"   "<<menuCoordinates.y;
 
-
-
-   registermousehandler(WM_LBUTTONDOWN, getCoordonates);
-   /* draw a rectangle */
-   while(mode==0){
-       cout<<aux1<<"   "<<aux2;
-       //settextstyle(BOLD_FONT, HORIZ_DIR, 6);
-
-       outtextxy(midx, midy-100, "SINGLE PLAYER");
-       outtextxy(midx, midy, "MULTYPLAYER");
+       outtextxy(midx, midy-100, "PLAYER VS. COMPUTER");
+       outtextxy(midx, midy, "PLAYER VS. PLAYER");
        outtextxy(midx, midy+100, "EXIT");
        system("cls");
-       //delay(500);
 
-
-       if(aux1>=156 && aux1<=562 &&aux2<=274 && aux2>=222)
+       if(menuCoordinates.x>=156 && menuCoordinates.x<=562 &&menuCoordinates.y<=274 && menuCoordinates.y>=222)
             mode = 1;
-       if(aux1>=187 && aux1<=530 &&aux2<=373 && aux2>=321)
+       if(menuCoordinates.x>=187 && menuCoordinates.x<=530 &&menuCoordinates.y<=373 && menuCoordinates.y>=321)
             mode = 2;
-       if(aux1>=297 && aux1<=420 &&aux2<=472 && aux2>=422)
+       if(menuCoordinates.x>=297 && menuCoordinates.x<=420 &&menuCoordinates.y<=472 && menuCoordinates.y>=422)
             mode = 3;
-   }
-
-
+    }
     cout<<mode;
-//    _getch();
     closegraph();
 
 }
@@ -472,7 +465,6 @@ void generateMatrix(int board[8][8]){
 }
 void updateMatrix(int board[8][8],position moveFrom, position moveTo){
     board[moveTo.i][moveTo.j] = board[moveFrom.i][moveFrom.j];
-    //cout<<"  a=  "<<board[moveTo.i][moveTo.j]<<endl;
     board[moveFrom.i][moveFrom.j] = 0;
     if(didTheFoxWin(board,moveTo) && turn==1){
            win = 1;
@@ -480,7 +472,6 @@ void updateMatrix(int board[8][8],position moveFrom, position moveTo){
        }
 }
 bool didTheFoxWin(int board[8][8],position moveTo){
-
     for(int i=moveTo.i+1;i<8;i++)
         for(int j=0;j<8;j++)
             if(board[i][j]!=0)
@@ -543,11 +534,13 @@ bool moveIsValid (int board[8][8], position moveFrom, position moveTo, int turn 
     }
     return false;
 }
+
 void resetGame(int board[8][8]){
-    generateMatrix(board);
-    drawBoard(board,0,0,x,y);
-    //update the score somewhere
+    //reset the game
+    //do a fct to update the score somewhere
 }
+
+//draws the fox onto the board
 void fox(int i,int j,int k) {
     ellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),0,360,17,17);
     fillellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),17,17);
@@ -556,12 +549,12 @@ void fox(int i,int j,int k) {
     ellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),0,360,10,10);
     fillellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),10,10);
 }
+//draws the dogs onto the board
 void dogs(int i,int j,int k) {
     ellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),0,360,17,17);
     fillellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),17,17);
     setcolor(120);
     setfillstyle(1,10);
-
     ellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),0,360,10,10);
     fillellipse((j+getmaxx()/16),(k+i)-(getmaxy()/16),10,10);
 }

@@ -6,6 +6,7 @@
 using namespace std;
 
 int win = 0, turn = 1, x, y, aux1, aux2, mode = 0, numberOfStepsInStrategy = 1;
+int mode1 = 0;
 int currentLine, whatStrategyAreWeIn;
 //turn=1 => fox's turn
 //turn=2 => dogs' turn
@@ -39,23 +40,25 @@ void thirdStrategyTwo(int board[8][8],int line);
 void moveADogInStrategy(int board[8][8], int i1,int i2,int j1,int j2);
 void startPlay(int board[8][8]);
 void initialiseWindow(int board[8][8]);
+bool didTheFoxWin(int board[8][8],position moveTo);
+bool didTheDogsWin(int board[8][8]);
+void dogsWin();
 
 int main(){
 
     mainMenu();
-
+    if(mode!=3){
     int board[8][8];
     generateMatrix(board);
     printMatrix(board);
 
     initialiseWindow(board);
     startPlay(board);
-
-    getch();
+    }
+    //getch();
     closegraph();
     return 0;
 }
-
 void initialiseWindow(int board[8][8]){
     initwindow(720, 720);
     x=getmaxx()/8;
@@ -64,41 +67,76 @@ void initialiseWindow(int board[8][8]){
     registermousehandler(WM_LBUTTONUP, getMoveToOnClick);
 }
 void startPlay(int board[8][8]){
-    if(win==1)
+
+    if(win==1){
         foxWins();
-    else {
-            drawBoard(board,0,0,x,y);
-            system("cls");
-            cout<<turn;
-
-            cout<<endl;
-            cout<<moveTo.i<<" "<<moveTo.j<<endl;
-            cout<<moveFrom.i<<" "<<moveFrom.j<<endl;
-
-            if(moveIsValid(board,moveFrom,moveTo,turn)){
-                updateMatrix(board,moveFrom,moveTo);
+        if(mode1==1){
+                mode1=0;
+                win = 0;
+                generateMatrix(board);
                 printMatrix(board);
-                cout<<turn;
-                if(turn==1)
-                    turn=2;
-                else
-                    if(mode == 2)
-                        turn=1;
-                drawBoard(board,0,0,x,y);
-            }
-            if(turn == 2 && mode == 1){
-                if(whatStrategyAreWeIn == 0) checkStrategy(board);
-                else if(whatStrategyAreWeIn == 1) firstStrategy(board,currentLine);
-                else if(whatStrategyAreWeIn == 2) secondStrategy(board,currentLine);
-                else if(whatStrategyAreWeIn == 3) thirdStrategy(board,currentLine);
-                else if(whatStrategyAreWeIn == 4) thirdStrategyOne(board,currentLine);
-                else if(whatStrategyAreWeIn == 5) thirdStrategyTwo(board,currentLine);
-                drawBoard(board,0,0,x,y);
-                turn = 1;
-            }
-        printMatrix(board);
-        startPlay(board);
+                initialiseWindow(board);
+                startPlay(board);
+
+        }
+        if(mode1==2){
+            mode1=0;
+            _getch();
+            closegraph();
+        }
     }
+
+    if(win == 2){
+        dogsWin();
+
+        if(mode1==1){
+            mode1=0;
+            win = 0;
+            generateMatrix(board);
+            printMatrix(board);
+            initialiseWindow(board);
+            startPlay(board);
+        }
+        if(mode1==2){
+            mode1=0;
+            closegraph();
+            _getch();
+        }
+    }
+
+    drawBoard(board,0,0,x,y);
+    system("cls");
+    cout<<turn;
+
+    cout<<endl;
+    cout<<moveTo.i<<" "<<moveTo.j<<endl;
+    cout<<moveFrom.i<<" "<<moveFrom.j<<endl;
+
+    if(moveIsValid(board,moveFrom,moveTo,turn)){
+        updateMatrix(board,moveFrom,moveTo);
+        printMatrix(board);
+        cout<<turn;
+        if(turn==1)
+            turn=2;
+        else
+            if(mode == 2 && turn==2)
+                turn=1;
+        drawBoard(board,0,0,x,y);
+    }
+    if(turn == 2 && mode == 1){
+        //closegraph();
+        if(whatStrategyAreWeIn == 0) checkStrategy(board);
+        else if(whatStrategyAreWeIn == 1) firstStrategy(board,currentLine);
+        else if(whatStrategyAreWeIn == 2) secondStrategy(board,currentLine);
+        else if(whatStrategyAreWeIn == 3) thirdStrategy(board,currentLine);
+        else if(whatStrategyAreWeIn == 4) thirdStrategyOne(board,currentLine);
+        else if(whatStrategyAreWeIn == 5) thirdStrategyTwo(board,currentLine);
+        drawBoard(board,0,0,x,y);
+        turn = 1;
+    }
+    printMatrix(board);
+    startPlay(board);
+
 }
 void checkStrategy(int board[8][8]){
     for(int i=0;i<8;i+=2){
@@ -149,7 +187,7 @@ void checkStrategy(int board[8][8]){
             whatStrategyAreWeIn=2;
             secondStrategy(board,i);
         }
-        else if(board[i][6]==5 && board[i+1][1]!=0 && board[i+1][3]!=0 &&board[i+1][5]!=0 && board[i+1][7]!=0){
+        else if((board[i][6]==5||board[i][2]==5) && board[i+1][1]!=0 && board[i+1][3]!=0 &&board[i+1][5]!=0 && board[i+1][7]!=0){
             numberOfStepsInStrategy = 1;
             currentLine=i;
             whatStrategyAreWeIn=1;
@@ -163,13 +201,16 @@ void checkStrategy(int board[8][8]){
     }
 }
 void moveADogInStrategy(int board[8][8], int i1,int i2,int j1,int j2){
+
     position moveFromLocal, moveToLocal;
+    if(whatStrategyAreWeIn!=0)
+        numberOfStepsInStrategy++;
     moveFromLocal.i = i1;
     moveFromLocal.j = j1;
     moveToLocal.i = i2;
     moveToLocal.j = j2;
     updateMatrix(board,moveFromLocal,moveToLocal);
-    numberOfStepsInStrategy++;
+
     if(turn == 2)
         turn = 1;
 }
@@ -430,16 +471,22 @@ void thirdStrategy(int board[8][8], int line){
     }
 }
 void defaultStrategy(int board[8][8]){
+    numberOfStepsInStrategy=0;
     if(turn == 2){
-        for(int i=0;i<8;i++){
-            if(board[7][i]!=0){
-                board[6][i+1] = board[7][i];
-                board[7][i]=0;
-                i=8;
-                turn = 1;
+      for (int line=7;line>=0;line--) {
+        for(int i=0;i<8;i++) {
+
+          if (board[line][i] != 0 && board[line-1][i-1] !=  5  && board[line-1][i+1] !=  5 && line != 0) {
+            if (line % 2 == 0 && board[line-2][i+2]!=5)
+                    moveADogInStrategy(board,line,line-1, i, i-1);
+            else {
+                    moveADogInStrategy(board,line,line-1, i, i+1);
+                    secondStrategy(board,line);
             }
+            return;
+          }
         }
-        checkStrategy(board);
+      }
     }
 }
 void getMoveFromOnClick(int x1, int y1){
@@ -488,6 +535,7 @@ void mainMenu(){
             mode = 3;
     }
     cout<<mode;
+    //_getch();
     closegraph();
 
 }
@@ -507,8 +555,15 @@ void updateMatrix(int board[8][8],position moveFrom, position moveTo){
     board[moveFrom.i][moveFrom.j] = 0;
     if(didTheFoxWin(board,moveTo) && turn==1){
            win = 1;
-           foxWins();
+          // foxWins();
        }
+
+    if(didTheDogsWin(board) && turn == 2)
+    {
+        win = 2 ;
+       // dogsWin();
+    }
+
 }
 bool didTheFoxWin(int board[8][8],position moveTo){
     for(int i=moveTo.i+1;i<8;i++)
@@ -517,8 +572,90 @@ bool didTheFoxWin(int board[8][8],position moveTo){
                 return false;
     return true;
 }
+bool didTheDogsWin(int board[8][8])
+{
+    for(int i=0;i<8;i++)
+        for(int j=0;j<8;j++)
+            if(
+               (board[i-1][j-1]!=0 || i-1<0 || j-1<0)&&
+               (board[i-1][j+1]!=0 || i-1<0 || j+1>7)&&
+               (board[i+1][j-1]!=0 || i+1>7 || j-1<0)&&
+               (board[i+1][j+1]!=0 || i+1>7 || j+1>7)&&
+                board[i][j]==5)
+            {
+                 //closegraph();
+                return true;
+            }
+    return false;
+}
+void dogsWin()
+{
+
+    int style, midx, midy;
+    int size = 1;
+    initwindow(720, 720);
+    setbkcolor(BLUE);
+    moveto(50,50);
+
+    midx = getmaxx() / 2;
+    midy = getmaxy() / 2;
+
+    settextstyle(BOLD_FONT, HORIZ_DIR, 6);
+    settextjustify(1,1);
+    outtextxy(midx, 100, "THE DOGS WON!!!");
+
+    registermousehandler(WM_LBUTTONDOWN, getCoordonates);
+    menuCoordinates.i=0;
+    menuCoordinates.j=0;
+    mode1=0;
+    while(mode1==0){
+       cout<<menuCoordinates.i<<"   "<<menuCoordinates.j;
+
+       outtextxy(midx, midy-100, "PLAY AGAIN");
+       outtextxy(midx, midy, "EXIT");
+       system("cls");
+        if(menuCoordinates.i>=206 && menuCoordinates.i<=516 &&menuCoordinates.j<=273 && menuCoordinates.j>=220)
+            mode1 = 1;
+       if(menuCoordinates.i>=297 && menuCoordinates.i<=422 &&menuCoordinates.j<=375 && menuCoordinates.j>=325)
+            mode1 = 2;
+       // _getch();
+    }
+
+    closegraph();
+}
 void foxWins(){
-    cout<<"the fox wins";
+
+    int style, midx, midy;
+    int size = 1;
+    initwindow(720, 720);
+    setbkcolor(BLUE);
+    moveto(50,50);
+
+    midx = getmaxx() / 2;
+    midy = getmaxy() / 2;
+
+    settextstyle(BOLD_FONT, HORIZ_DIR, 6);
+    settextjustify(1,1);
+    outtextxy(midx, 100, "THE FOX WON!!!");
+
+    registermousehandler(WM_LBUTTONDOWN, getCoordonates);
+    menuCoordinates.i=0;
+    menuCoordinates.j=0;
+    mode1=0;
+    while(mode1==0){
+       cout<<menuCoordinates.i<<"   "<<menuCoordinates.j;
+
+       outtextxy(midx, midy-100, "PLAY AGAIN");
+       outtextxy(midx, midy, "EXIT");
+       system("cls");
+        if(menuCoordinates.i>=206 && menuCoordinates.i<=516 &&menuCoordinates.j<=273 && menuCoordinates.j>=220)
+            mode1 = 1;
+       if(menuCoordinates.i>=297 && menuCoordinates.i<=422 &&menuCoordinates.j<=375 && menuCoordinates.j>=325)
+            mode1 = 2;
+       // _getch();
+    }
+
+    closegraph();
 }
 void drawBoard(int board[8][8],int m, int l, int x, int y){
     //draw the board
@@ -573,7 +710,6 @@ bool moveIsValid (int board[8][8], position moveFrom, position moveTo, int turn 
     }
     return false;
 }
-
 void resetGame(int board[8][8]){
     //reset the game
     //do a fct to update the score somewhere

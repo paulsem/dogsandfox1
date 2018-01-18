@@ -1,8 +1,13 @@
 # depslib dependency file v1.0
-1516116112 source:c:\users\paul\documents\github\dogsandfox\main.cpp
+1516278802 source:c:\users\paul\documents\github\dogsandfox\main.cpp
 	<iostream>
 	<stdio.h>
 	<conio.h>
 	<graphics.h>
 	<dos.h>
+
+1151695084 c:\users\paul\documents\github\dogsandfox\graphics.h
+	<windows.h>
+	<limits.h>
+	<sstream>
 
